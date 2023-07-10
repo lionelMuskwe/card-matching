@@ -1,37 +1,17 @@
-const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-const suits = ["♠", "♥", "♦", "♣"];
-var deck = [];
-
-var card_one_open = false;
-var card_two_open = false;
-
-function createDeck() {
-    let counter = 0;
-    suits.forEach(suit => {
-        ranks.forEach(rank => {
-            console.log(rank + " of " + suit);
-            counter +=1 ;
-        })
-    });
-    console.log("Counter = " + counter);
-}
-
-class Card {
-    constructor(rank, suit, id) {
-        this.rank = rank;
-        this.suit = suit;
-        this.id = id;
-    }
-}
-
-// createDeck();
-
-
-
-
+var card_one_open = "";
+var card_two_open = "";
+previousSelectedCards = [];
 
 var start_game_button = document.getElementById("load-deck");
-start_game_button.onclick = addCardContainerEventListeners();
+start_game_button.onclick = addCardContainerEventListeners;
+var test_button = document.getElementById("test-button");
+test_button.onclick = function(){
+    deck.forEach(card => {
+        console.log(String(card));
+    })
+    console.log("Printed Cards");
+    console.log("Deck size :" + deck.length);
+};
 
 
 // This code snippet adds event listeners for each card container,
@@ -45,23 +25,20 @@ function addCardContainerEventListeners(){
     cardContainers.forEach(card => {
         card.addEventListener('click', function() {
             card.classList.toggle('show-details');
-            displayCardAfterClick()
       });
     });
 }
 
 
 function displayCardAfterClick(){
+    // console.log(card_one_open + " vs " + card_two_open);
     if (card_one_open != true){
-        console.log("One Card is now open");
         card_one_open = true;
     }
     else if (card_one_open  && !card_two_open){
-        console.log("Two cards are now open")
         card_two_open = true;
     }
     else if (card_one_open && card_two_open){
-        console.log("Cards are now closed")
         // Remove cards if matching
         card_one_open = false;
         card_two_open = false;
@@ -79,14 +56,123 @@ function hideAllCards(){
 
         if (isDetailsShown) {
           card.classList.remove("show-details");
-        } 
+        }
     });
 }
 
+function CreateCardsAndDisplayFromDeck(deck){
+    deck.forEach(card => {
+        // Create the parent container element
+        var cardContainer = document.createElement("div");
+        cardContainer.classList.add("card-container");
+        let id = card.rank + "-" + card.suit;
+        cardContainer.classList.add(id);
 
-// var parentElement = document.querySelector(".cards-container");
-// parentElement.addEventListener("click", function(event){
-//     if (event.target.classList.contains("card-container")){
+        if (card.suit === "♦" || card.suit === "♥" ){
+            cardContainer.classList.add("black-colour");
+        }
+        else {
+            cardContainer.classList.add("red-colour");
+        }
 
-//     }
-// })
+        // Create the card cover element
+        var cardCover = document.createElement("div");
+        cardCover.classList.add("card-cover");
+
+        // Create the card index element
+        var cardIndex = document.createElement("div");
+        cardIndex.classList.add("card-index");
+
+        // Append the card index element to the card cover element
+        cardCover.appendChild(cardIndex);
+
+        // Create the card details element
+        var cardDetails = document.createElement("div");
+        cardDetails.classList.add("card-details");
+
+        // Create the card rank element
+        var cardRank = document.createElement("div");
+        cardRank.classList.add("card-rank");
+        if (card.suit === "♦" || card.suit === "♥" ){
+            cardRank.classList.add("black-colour-rank");
+        }
+        else {
+            cardRank.classList.add("red-colour");
+        }
+        cardRank.textContent = card.rank;
+
+        // Create the card suit element
+        var cardSuit = document.createElement("div");
+        cardSuit.classList.add("card-suit");
+        cardSuit.textContent = card.suit;
+
+        // Append the card rank and card suit elements to the card details element
+        cardDetails.appendChild(cardRank);
+        cardDetails.appendChild(cardSuit);
+
+        // Append the card cover and card details elements to the card container element
+        cardContainer.appendChild(cardCover);
+        cardContainer.appendChild(cardDetails);
+
+        // Append the card container element to the document body or another desired parent element
+        cardsParentContainer = document.querySelector(".cards-container");
+        cardsParentContainer.appendChild(cardContainer);
+
+    })
+}
+
+
+var deck = new Deck();
+deck.createDeck();
+
+CreateCardsAndDisplayFromDeck(deck.deck_of_cards)
+addCardContainerEventListeners()
+
+
+$(document).on("click", ".card-container", function() {
+    displayCardAfterClick();
+
+    // Get details of the clicked cards
+    if (card_one_open == true || ((card_one_open && card_two_open == false) || card_two_open == true)) {
+        let l_c_r =  $(this).find(".card-rank").html();
+        let l_c_s =  $(this).find(".card-suit").html();
+        // console.log("Selected card is : " + l_c_s + " of " + l_c_r);
+        previousSelectedCards.push(deck.getCard(l_c_r, l_c_s));
+
+        if (previousSelectedCards.length == 2){
+            if (deck.compareCards(previousSelectedCards[0], previousSelectedCards[1])){
+                console.log("Cards are similar");
+                // Remove the cards from screen
+                deleteCardFromScreen(previousSelectedCards[0]);
+                deleteCardFromScreen(previousSelectedCards[1]);
+                // Remove the cards from deck
+
+            } else {
+                console.log("Not Similar");
+            }
+        }
+    } else {
+        previousSelectedCards = [];
+    }
+  });
+
+
+function checkIfCardsMatch(){
+    console.log("Last clicked card: " + lastClickedCard.rank)
+}
+
+function deleteCardFromScreen(card_to_delete){
+    let id = card_to_delete.rank + "-" + card_to_delete.suit;
+    let cardContainersCollection = document.getElementsByClassName(id);
+    var cardContainers = Array.from(cardContainersCollection);
+
+    // Addint an event listner to each container
+    cardContainers.forEach(container => {
+        container.classList.add("completed");
+    });
+
+}
+
+function deleteCardFromDeck(){
+
+}
